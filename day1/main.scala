@@ -20,7 +20,14 @@ object Main {
       line = StdIn.readLine()
     }
     println(elfs)
-    val max = elfs.max
-    println("Max:"+max)
+    val m1 = elfs.max
+    println("Max:"+m1)
+    elfs -= m1
+    val m2 = elfs.max
+    println("Next:"+m2)
+    elfs -= m2
+    val m3 = elfs.max
+    println("Next:"+m3)
+    println("Total:"+(m1+m2+m3))
   }
 }
