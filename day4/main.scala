@@ -4,7 +4,8 @@ import scala.io.StdIn
 object Main {
   def main(args: Array[String]): Unit = {
     var line = StdIn.readLine()
-    var count: Int = 0
+    var sum1: Int = 0
+    var sum2: Int = 0
     while (line!=null) {
       // split and parse each pair of ranges
       val pair = line.split(',')
@@ -22,14 +23,16 @@ object Main {
       val r1e = elf1(1).toInt
       val r2b = elf2(0).toInt
       val r2e = elf2(1).toInt
-      println("parsed: "+r1b+','+r1e+','+r2b+','+r2e)
       // containment check!
       if (r1b<=r2b && r1e>=r2e)
-        count += 1
+        sum1 += 1
       else if (r2b<=r1b && r2e>=r1e)
-        count += 1
+        sum1 += 1
+      // overlap check (part2)
+      if (!(r1e<r2b || r2e<r1b))
+        sum2 += 1
       line = StdIn.readLine()
     }
-    println("Count: "+count)
+    println("Sum1: "+sum1+", Sum2: "+sum2)
   }
 }
