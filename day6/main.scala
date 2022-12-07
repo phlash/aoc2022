@@ -4,13 +4,10 @@ import scala.io.StdIn
 object Main {
   def start(history: String): Boolean = {
     println("chk:"+history)
-    if (history.charAt(0) == history.charAt(1) ||
-        history.charAt(0) == history.charAt(2) ||
-        history.charAt(0) == history.charAt(3) ||
-        history.charAt(1) == history.charAt(2) ||
-        history.charAt(1) == history.charAt(3) ||
-        history.charAt(2) == history.charAt(3))
-      return false
+    for (i <- 0 to history.length-2)
+      for (j <- i+1 to history.length-1)
+        if (history.charAt(i)==history.charAt(j))
+          return false
     return true
   }
 
@@ -22,6 +19,13 @@ object Main {
       pos += 1
       history = line.substring(pos,pos+4)
     }
-    println("Found:"+(pos+4))
+    println("Part1:"+(pos+4))
+    pos = 0
+    history = line.substring(pos,pos+14)
+    while (!start(history)) {
+      pos += 1
+      history = line.substring(pos,pos+14)
+    }
+    println("Part2:"+(pos+14))
   }
 }
