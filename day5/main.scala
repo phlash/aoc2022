@@ -34,19 +34,36 @@ object Main {
     }
 
     // now parse actions, and shuffle crates
+    var part1: List[Stack[Char]] = stacks.map(x => x.clone())
+    var part2: List[Stack[Char]] = stacks.map(x => x.clone())
     line = StdIn.readLine()
     while (line != null) {
       val t = line.trim().split("\\s+")
       val c = t(1).toInt
       val s = t(3).toInt
       val d = t(5).toInt
+      var b: Stack[Char] = Stack()
+      // part1 - move single crates..
       for (m <- 1 to c) {
-        stacks(d-1).push(stacks(s-1).pop())
+        part1(d-1).push(part1(s-1).pop())
+      }
+      // part2 - move strings of crates..
+      for (m <- 1 to c) {
+        b.push(part2(s-1).pop())
+      }
+      for (m <- 1 to c) {
+        part2(d-1).push(b.pop())
       }
       line = StdIn.readLine()
     }
     // print top of stacks
-    for (s <- stacks) {
+    print("Part1: ")
+    for (s <- part1) {
+      print(s.pop())
+    }
+    println()
+    print("Part2: ")
+    for (s <- part2) {
       print(s.pop())
     }
     println()
