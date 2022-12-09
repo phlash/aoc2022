@@ -31,6 +31,45 @@ object Main {
         r = false
     return r
   }
+  def scenic(x:Int, y:Int, trees:Vector[IndexedSeq[Int]]): Int = {
+    // count number of visible trees in all directions..
+    val h = trees(y)(x)
+    val my = trees.length
+    val mx = trees(0).length
+    var px = x
+    var sl = 0
+    while (px>0) {
+      sl += 1
+      px -= 1
+      if (trees(y)(px)>=h)
+        px = 0
+    }
+    var sr = 0
+    px = x
+    while (px<mx-1) {
+      sr += 1
+      px += 1
+      if (trees(y)(px)>=h)
+        px = mx
+    }
+    var py = y
+    var su = 0
+    while (py>0) {
+      su += 1
+      py -= 1
+      if (trees(py)(x)>=h)
+        py = 0
+    }
+    var sd = 0
+    py = y
+    while (py<my-1) {
+      sd += 1
+      py += 1
+      if (trees(py)(x)>=h)
+        py = my
+    }
+    return sl*sr*su*sd
+  }
   def main(args: Array[String]): Unit = {
     var trees: Vector[IndexedSeq[Int]] = Vector()
     var line = StdIn.readLine()
@@ -44,12 +83,6 @@ object Main {
       trees = trees :+ b
       line = StdIn.readLine()
     }
-    // dump it..
-    for (r <- trees) {
-      for (v <- r)
-        print(v+",")
-      println()
-    }
     // part1: count visible trees
     var part1 = (size-1)*2 + (trees.length-1)*2
     for (y <- 1 to trees.length-2)
@@ -57,5 +90,19 @@ object Main {
         if (isvisible(x, y, trees))
           part1 += 1
     println("Visible: "+part1)
+    // part2: find tree with highest scenic score
+    var ms = 0
+    var mx = 0
+    var my = 0
+    for (y <- 1 to trees.length-2)
+      for (x <- 1 to size-2) {
+        var s = scenic(x, y, trees)
+        if (s>ms) {
+          ms = s
+          mx = x
+          my = y
+        }
+      }
+    println("Max scenic: "+ms+" @ "+mx+","+my)
   }
 }
