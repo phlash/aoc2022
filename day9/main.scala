@@ -1,6 +1,6 @@
 // Rope Bridge..
 import scala.io.StdIn
-import scala.collection.mutable.Map
+import scala.collection.mutable.{Map, ArrayBuffer}
 
 object Main {
   def move(pos:(Int,Int,Int,Int), m:(Int,Int)): (Int,Int,Int,Int) = {
@@ -39,11 +39,15 @@ object Main {
     return (hx,hy,tx,ty)
   }
   def main(args: Array[String]): Unit = {
-    // starting position of head & tail
-    var pos = (0,0,0,0)
-    // coverage map
-    val cvg: collection.mutable.Map[(Int,Int),Int] = Map()
-    cvg += ((0,0) -> 1)
+    // starting position of rope nodes
+    var rope: ArrayBuffer[(Int,Int)] = ArrayBuffer()
+    rope = rope.padTo(10, (0,0))
+    println(rope)
+    // coverage maps (node 1 and 9: parts 1 & 2)
+    val part1: collection.mutable.Map[(Int,Int),Int] = Map()
+    val part2: collection.mutable.Map[(Int,Int),Int] = Map()
+    part1 += ((0,0) -> 1)
+    part2 += ((0,0) -> 1)
     var line = StdIn.readLine()
     while (line != null) {
       val d = line.charAt(0)
@@ -56,15 +60,28 @@ object Main {
         case _ => { println("oops, unknown direction:"+d); (0,0) }
       }
       for (i <- 1 to l) {
-        pos = move(pos,m)
-        val (hx,hy,tx,ty) = pos
-        cvg += ((tx,ty) -> 1)
-        println(m+">"+pos)
+        // move the rope, one node at a time
+        for (i <- 0 to 8) {
+          val (hx,hy,tx,ty) = move(
+            (rope(i)._1,rope(i)._2,rope(i+1)._1,rope(i+1)._2),
+            if (i>0) (0,0) else m)
+          rope = rope.patch((i+1),List((tx,ty)),1)
+          if (0==i) {
+            rope = rope.patch(i,List((hx,hy)),1)
+            part1 += ((tx,ty) -> 1)
+          }
+          if (8==i)
+            part2 += ((tx,ty) -> 1)
+        }
+        println(m+">"+rope)
       }
       line = StdIn.readLine()
     }
-    for (p <- cvg)
+    for (p <- part1)
       println(p)
-    println("Final count:"+(cvg.size))
+    println("Part1 count:"+(part1.size))
+    for (p <- part2)
+      println(p)
+    println("Part2 count:"+(part2.size))
   }
 }
