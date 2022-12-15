@@ -49,12 +49,12 @@ class Packet(val text:String, val verb:Boolean=false) {
       res = if (value>rhs.value) -1 else if (value<rhs.value) 1 else 0
       if (verb) println(f"${pfx}S(${value}/${rhs.value})=${res}")
     } else if (value> -1 && rhs.value<0) {
-      print(f"${pfx}CL(${value})=")
+      if (verb) print(f"${pfx}CL(${value})=")
       val lh = new Packet(value,verb)
       if (verb) println()
       res = lh.inOrder(rhs,pfx)
     } else if (value<0 && rhs.value> -1) {
-      print(f"${pfx}CR(${rhs.value})=")
+      if (verb) print(f"${pfx}CR(${rhs.value})=")
       val rh = new Packet(rhs.value,verb)
       if (verb) println()
       res = inOrder(rh,pfx)
@@ -68,10 +68,14 @@ class Packet(val text:String, val verb:Boolean=false) {
       }
       if (res==0) {
         res = if (items.length>rhs.items.length) -1 else if (items.length<rhs.items.length) 1 else 0
-        println(f"${pfx}LL(${items.length}/${rhs.items.length})=${res}")
+        if (verb) println(f"${pfx}LL(${items.length}/${rhs.items.length})=${res}")
       }
     }
     return res
+  }
+
+  override def toString = {
+    if (value> -1) f"${value}" else items.map(_.toString).mkString("[",",","]")
   }
 }
 
@@ -110,5 +114,30 @@ object Main {
       if (verb) println()
     }
     println("part1:"+sum)
+    // part2: sort entire list of packets, plus two magic divider ones..
+    val all = list1 ++ list2 ++ List(
+      new Packet("[[2]]"),
+      new Packet("[[6]]")
+    )
+    val part2 = all.sortWith(
+      (a,b) => {
+        val r = a.inOrder(b)
+        if (r<0) false else true
+      }
+    )
+    if (verb) println("sorted:")
+    idx = 1
+    var d1 = 0
+    var d2 = 0
+    for (pkt <- part2) {
+      val ps = pkt.toString
+      if (ps=="[[2]]")
+        d1 = idx
+      if (ps=="[[6]]")
+        d2 = idx
+      if (verb) println(idx+": "+pkt)
+      idx += 1
+    }
+    println(f"part2: d1=${d1} d2=${d2} key=${d1*d2}")
   }
 }
