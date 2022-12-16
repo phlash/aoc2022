@@ -30,10 +30,13 @@ object Main {
     return ng
   }
 
-  def pour(grid:ArrayBuffer[ArrayBuffer[Int]]): (ArrayBuffer[ArrayBuffer[Int]],Boolean) = {
+  def pour(grid:ArrayBuffer[ArrayBuffer[Int]], floor:Boolean=false): Boolean = {
     // starting at 500,0, trace a sand grain through the grid until it stops or falls away
     var x = 500
     var y = 0
+    // when we have a floor, termination is by filling up to the starting point
+    if (floor && grid(y)(x)==SAND)
+      return false
     while (y<grid.length-1) {
       // if we can move down, do it
       if (grid(y+1)(x)==AIR) {
@@ -50,14 +53,25 @@ object Main {
       } else {
         grid(y)(x) = SAND
         println("=stop")
-        return (grid,true)
+        return true
       }
       print((x,y))
     }
+    // hit the floor
+    if (floor) {
+      grid(y)(x) = SAND
+      println("=floor")
+      return true
+    }
     // fell out the bottom
     println("=fall")
-    return (grid,false)
+    return false
   }
+
+  def clear(grid:ArrayBuffer[ArrayBuffer[Int]]):Unit =
+    for (r <- grid)
+      for (c <- 0 to r.length-1)
+        if (r(c)==SAND) r(c) = AIR
 
   def main(args: Array[String]): Unit = {
     var grid: ArrayBuffer[ArrayBuffer[Int]] = ArrayBuffer()
@@ -110,12 +124,15 @@ object Main {
 
     // pour in the sand, until it falls out the bottom
     var sand = 0
-    var pres = pour(grid)
-    while (pres._2) {
-      grid = pres._1
+    while (pour(grid))
       sand += 1
-      pres = pour(grid)
-    }
     println("part1: "+sand)
+    // clear the sand, try again with a floor at grid.length+2 until we fill up
+    clear(grid)
+    grid = ensureGrid(grid,grid(0).length*2,grid.length)
+    sand = 0
+    while (pour(grid,true))
+      sand += 1
+    println("part2: "+sand)
   }
 }
