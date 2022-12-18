@@ -8,6 +8,7 @@ object Main {
   def main(args: Array[String]): Unit = {
     var line = StdIn.readLine()
     var scan: List[(Int,Int)] = List()
+    var sens: List[(Int,Int,Int)] = List()
     var bcns: List[(Int,Int)] = List()
     // part1: scanning @ y=10 (test) or y=2000000 (real)
     val ty = if (args.length>0) 2000000 else 10
@@ -26,6 +27,7 @@ object Main {
       var by = if (o>0) line.substring(o+4).toInt else -1
       bcns = bcns :+ (bx,by)
       val md = mhd((sx,sy),(bx,by))
+      sens = sens :+ (sx,sy,md)
       println(f"s=(${sx},${sy}) b=(${bx},${by}) mhd=${md}")
       // the calculation is:
       // work out remaining manhattan distance, if <1 ignore this sensor
@@ -58,5 +60,34 @@ object Main {
       }
     }
     println("part1: "+count)
+    // part2: try a more efficient way to locate a gap in a scan line..
+    val len = if(args.length>0) 4000000 else 20
+    var p2b = new Array[Int](len)
+    for (o <- 0 to len/2) {
+      for (y <- List(len/2-o, len/2+o)) {
+      if ((y%100)==0)
+        println(y)
+      for (x <- 0 until len)
+        p2b(x) = 0
+      for (sen <- sens) {
+        val (sx,sy,md) = sen
+        val rem = (md-(sy-y).abs)
+        if (rem>=0) {
+          var x = sx-rem
+          while (x<=sx+rem) {
+            if (x>=0 && x<len)
+              p2b(x) = 1
+            x += 1
+          }
+        }
+      }
+      for (x <- 0 until len) {
+        if (p2b(x)==0) {
+          println(f" part2: (${x},${y})=${x*4000000+y}")
+          return
+        }
+      }
+    }
+    }
   }
 }
