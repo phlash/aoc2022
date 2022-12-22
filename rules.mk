@@ -9,7 +9,7 @@ SOURCES ?= main.scala
 all: $(TARGET)
 
 test: all
-	scala -classpath $(OUTPUT) $(notdir $(basename $(TARGET))) $(TEST_ARGS)
+	scala $(SCALA_OPTS) -classpath $(OUTPUT) $(notdir $(basename $(TARGET))) $(TEST_ARGS)
 
 clean:
 	rm -rf $(OUTPUT)
