@@ -7,15 +7,17 @@ object Main {
     var din: ArrayBuffer[(Long,Long)] = ArrayBuffer()
     var line = StdIn.readLine()
     var pos = 0
+    val key = if (args.length>0) 811589153L else 1L
+    val loop = if (args.length>0) 10 else 1
     while (line != null) {
-      din = din :+ (pos.toLong,line.toLong*811589153L)
+      din = din :+ (pos.toLong,line.toLong*key)
       pos += 1
       line = StdIn.readLine()
     }
     println(f"input: ${din}")
     var dout = din.clone
     val dlen = dout.length
-    for (i <- 0 until 10) {
+    for (i <- 0 until loop) {
       println(i)
       for (p <- din) {
         // find it..
@@ -68,10 +70,10 @@ object Main {
     // calculate co-ordinates
     val zpos = dout.indexWhere(_._2==0)
     println(f"zero@${zpos}")
-    val part2 =
+    val res =
       dout((zpos+1000)%dout.length)._2 +
       dout((zpos+2000)%dout.length)._2 +
       dout((zpos+3000)%dout.length)._2
-    println(f"part2: ${part2}")
+    println(f"result: ${res}")
   }
 }
