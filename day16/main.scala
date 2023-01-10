@@ -2,14 +2,15 @@
 import scala.io.StdIn
 import scala.collection.mutable.{HashMap,Queue}
 
-class GraphNode(val name:String, val flow:Int, val tunnels:List[String]) {
-  override def toString = f"GraphNode(${name},${flow},${tunnels})"
+class GraphNode(val bitmask: Long, val name:String, val flow:Int, val tunnels:List[String]) {
+  override def toString = f"GraphNode(${name}($bitmask%#x),${flow},${tunnels})"
 }
 
 object Main {
 
   // Depth-first-search (DFS) to find maximum pressure release in <n> iterations
-  def maxPressure(loaded: List[GraphNode], distmap: HashMap[(String,String),Int], visited: List[String], start: String, iter: Int, pres: Long): Long = {
+  // ..also populates a map of paths indexed by a bitmask of nodes
+  def maxPressure(loaded: List[GraphNode], distmap: HashMap[(String,String),Int], visited: List[String], start: String, iter: Int, pres: Long, bitpaths: HashMap[Long,Long] = HashMap()): Long = {
     //println(f"${start}:iter=${iter} pres=${pres} path=${visited}")
     if (0 == iter) {
       println("- oops")
@@ -22,10 +23,15 @@ object Main {
     } else {
       (0L, iter)
     }
-    // can we go elsewhere?
-    var epres = pres + opres
-    var mpres = epres
+    // update bitpaths
+    val epres = pres + opres
     val nvisited = visited :+ start
+    // nb: we exclude the starting node, otherwise all bitmasks contain the same bit
+    // which messes up the distinct test later..
+    val bitmask = nvisited.tail.map(name => loaded.find(n => n.name==name).get.bitmask).sum
+    bitpaths(bitmask) = if (bitpaths.contains(bitmask)) { if (epres > bitpaths(bitmask)) epres else bitpaths(bitmask) } else epres
+    // can we go elsewhere?
+    var mpres = epres
     distmap.filter(e => {
       // all routes from here..
       e._1._1==start &&
@@ -34,7 +40,7 @@ object Main {
       // ..that we have time to..
       oiter > e._2
     }).foreach(e => {
-      val vpres = maxPressure(loaded, distmap, nvisited, e._1._2, oiter-e._2, epres)
+      val vpres = maxPressure(loaded, distmap, nvisited, e._1._2, oiter-e._2, epres, bitpaths)
       mpres = if (vpres>mpres) vpres else mpres
     })
     // backtrack state
@@ -63,6 +69,7 @@ object Main {
   def main(args: Array[String]): Unit = {
     var loaded:List[GraphNode] = List()
     var line = StdIn.readLine()
+    var bitmask = 1L
     while (line != null) {
       // parse line to obtain name, flow and tunnels
       var o = line.indexOf(" ")
@@ -74,25 +81,45 @@ object Main {
       o = if (e>0) line.indexOf(",",e) else -1
       o = if (o<0) line.length else o
       val t = if (o>0) line.substring(o-2).split(",").map(_.trim) else Array[String]()
-      val node = if (n.length>0 && f != -1) new GraphNode(n, f, t.toList) else null
+      val node = if (n.length>0 && f != -1) new GraphNode(bitmask, n, f, t.toList) else null
       loaded = loaded :+ node
+      bitmask <<= 1
       line = StdIn.readLine()
     }
     println(f"loaded:\n${loaded}")
     // reduce loaded data to a graph of minimum distances between all nodes
     // using a breadth-first-search (BFS)
-    val distmap = HashMap[(String,String),Int]()
+    val tempmap = HashMap[(String,String),Int]()
     for (node <- loaded) {
       val queue = Queue[(String,Int)]()
       node.tunnels.foreach(name => queue.enqueue((name,1)))
-      bfs(loaded, distmap, queue, node.name)
+      bfs(loaded, tempmap, queue, node.name)
     }
+    println(f"tempmap size:${tempmap.size}")
+    // prune zero-flow (useless) nodes from the distance map, except "AA"!
+    val distmap = tempmap.filter(e => {
+      val n1 = loaded.find(n => n.name==e._1._1).get
+      val n2 = loaded.find(n => n.name==e._1._2).get
+      n1.name=="AA" || (n1.flow > 0 && n2.flow > 0)
+    })
     println(f"distmap size:${distmap.size}")
-    for (e <- distmap)
-      println(f"${e._1} => ${e._2}")
-    // start with all zero-flow nodes in the visited list to remove them from search
-    val visited = loaded.filter(n => 0==n.flow).map(n => n.name)
-    val mpres = maxPressure(loaded, distmap, visited, "AA", 30, 0)
-    println(f"mpres: ${mpres}")
+    // part1 - find the highest pressure in 30 steps
+    val mpres = maxPressure(loaded, distmap, List(), "AA", 30, 0)
+    println(f"part1: ${mpres}")
+    // part2 - find two distinct paths that have the highest combined pressure over 26 steps
+    val bitpaths = HashMap[Long,Long]()
+    maxPressure(loaded, distmap, List(), "AA", 26, 0, bitpaths)
+    println(f"bitpaths size:${bitpaths.size}")
+    var part2 = 0L
+    var cnt = 0
+    for {
+      p1 <- bitpaths
+      p2 <- bitpaths
+      if ((p1._1 & p2._1)==0)
+    } {
+      part2 = if ((p1._2+p2._2) > part2) (p1._2+p2._2) else part2
+      cnt += 1
+    }
+    println(f"part2: cnt=${cnt} ${part2}")
   }
 }
