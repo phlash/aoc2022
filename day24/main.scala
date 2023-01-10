@@ -65,7 +65,7 @@ object Main {
   def gcd(a:Int, b:Int): Int =
     if (b==0) a else gcd(b, a%b)
 
-  def search(maps: ArrayBuffer[ArrayBuffer[ArrayBuffer[Int]]], start: (Int,Int), end: (Int,Int)): Int = {
+  def search(maps: ArrayBuffer[ArrayBuffer[ArrayBuffer[Int]]], start: (Int,Int), end: (Int,Int), istp: Int): (Int,Int) = {
     // operate a breadth-first search to find the shortest route out..
     val maxx = maps(0)(0).length
     val maxy = maps(0).length
@@ -73,7 +73,7 @@ object Main {
     val queue = Queue[(Int,Int)]()
     // visited state includes map cycle position, to account for moving map
     var visited = HashMap[(Int,Int,Int),Int]()
-    var step = 0
+    var step = istp
     var dist = 0
     var done = false
     queue.enqueue(start)
@@ -105,8 +105,10 @@ object Main {
       Console.flush()
       //dump(maps(step), start, end, visited, step)
       //println(f"at dist=${dist},step=${step},queue=${queue},visited=${visited}")
-      step = ns
-      dist += 1
+      if (!done) {
+        step = ns
+        dist += 1
+      }
       /*
       val tty = Source.fromFile("/dev/tty")
       try {
@@ -116,7 +118,7 @@ object Main {
       }
       */
     }
-    dist-1
+    (step,dist)
   }
   def main(args: Array[String]): Unit = {
     val maps = ArrayBuffer[ArrayBuffer[ArrayBuffer[Int]]]()
@@ -151,7 +153,12 @@ object Main {
     }
     println(f"maps.length=${maps.length}")
     println(f"pos=${pos} end=${end}")
-    val part1 = search(maps, pos, end)
+    val (s1,part1) = search(maps, pos, end, 0)
     println(f"part1: ${part1}")
+    val (s2,d2) = search(maps, end, pos, s1)
+    println(f"intr: ${d2}")
+    val (s3,d3) = search(maps, pos, end, s2)
+    val part2 = part1+d2+d3
+    println(f"part2: ${part2}")
   }
 }
